@@ -73,7 +73,7 @@
             app:tint="@color/white"
             android:src="@drawable/ic_location_24"
             android:layout_marginBottom="16dp"
-            android:contentDescription="@string/bruh"
+            android:contentDescription="@string/floatingactionbutton"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 

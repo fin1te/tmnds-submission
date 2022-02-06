@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name">LiveLocationTest</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="bruh">bruh</string>
+    <string name="app_name">Rishabh</string>
+    <string name="floatingactionbutton">FloatingActionButton</string>
 </resources>
