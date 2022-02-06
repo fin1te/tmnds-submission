@@ -4,8 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/androidproject/LiveLocationTest/app/src/main/res/layout/activity_main.xml" value="0.33177083333333335" />
-        <entry key="..\:/androidproject/LiveLocationTest/app/src/main/res/layout/fragment_home.xml" value="0.33177083333333335" />
+        <entry key="..\:/androidproject/LiveLocationTest/app/src/main/res/layout/fragment_home.xml" value="0.22" />
         <entry key="..\:/androidproject/LiveLocationTest/app/src/main/res/layout/fragment_splash.xml" value="0.33177083333333335" />
+        <entry key="..\:/androidproject/LiveLocationTest/app/src/main/res/layout/single_item.xml" value="0.25" />
       </map>
     </option>
   </component>
