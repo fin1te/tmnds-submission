@@ -3,8 +3,10 @@ package com.finite.livelocationtest.ui.fragment
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.IntentSender
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -43,7 +45,12 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
 
     private var binding: FragmentHomeBinding? = null
 
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
+
     /** Location & Map Initializations */
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var myMap: GoogleMap
     private val location = LatLng(18.989401, 73.117516)
@@ -70,44 +77,26 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
         recView.adapter = locationAdapter
 
         /** Initialized FLPC */
-        fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(requireContext())
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext()) // Test111
+        locationCallback = object : LocationCallback() {
 
-        /** Requests for Location Perms if not given */
-        if (!hasLocationPermission()) {
-            requestLocationPermission()
-        }
+            override fun onLocationResult(locationResult: LocationResult) {
+                locationResult ?: return
+                for (location in locationResult.locations){
 
-        val fragmentManager: FragmentManager = childFragmentManager
-
-        val mapFragment = fragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-
-        binding!!.fab.setOnClickListener {
-
-            fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
-
-                /** Null-Safety Check*/
-                if (location != null) {
-
-                    /** Getting Timestamp based on Android Version of Target Device*/
                     val timestamp: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         val current = LocalDateTime.now()
-                        val formatter = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm:ss.SSS")
+                        val formatter = DateTimeFormatter.ofPattern("dd/MM/yy  HH:mm:ss.SSS")
                         current.format(formatter).toString()
                     } else {
-                        val currentDate: String = SimpleDateFormat(
-                            "dd/MM/yy",
-                            Locale.getDefault()
-                        ).format(Date())
+                        val currentDate: String =
+                            SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(Date())
                         val currentTime =
                             SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(Date())
-                        "$currentDate $currentTime"
+                        "$currentDate  $currentTime"
                     }
 
-                    updateMap(location.latitude, location.longitude)
-
-                    /** Adding Data to List and Updating the Adapter and RecyclerView with the Data Change */
+                    updateMap(location.latitude,location.longitude)
                     dataList.add(
                         0,
                         LocationModel(
@@ -117,14 +106,28 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
                         )
                     )
                     locationAdapter.notifyDataSetChanged()
-
-                }
-                /** Gets called If Device Location is Turned off */
-                else {
-                    Log.d("FirstFragment", "Reached Else")
-                    createLocationRequest()
                 }
             }
+
+        }
+
+        fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(requireContext())
+
+        /** Requests for Location Perms if not given */
+        if (!hasLocationPermission()) {
+            requestLocationPermission()
+        }
+
+
+
+        val fragmentManager: FragmentManager = childFragmentManager
+
+        val mapFragment = fragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+
+        binding!!.fab.setOnClickListener {
+            createLocationRequest()
         }
         return fragmentBinding.root
     }
@@ -138,6 +141,7 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
             fastestInterval = 50
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             maxWaitTime = 100
+            smallestDisplacement = 1f
         }
 
         val builder = LocationSettingsRequest.Builder()
@@ -147,6 +151,8 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
 
         task.addOnSuccessListener { locationSettingsResponse ->
+
+
             fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
                 if (location != null) {
 
@@ -178,7 +184,7 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
                     )
                     Toast.makeText(
                         context,
-                        "${location.latitude} : ${location.longitude}",
+                        "${location.accuracy}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -197,6 +203,13 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
                 }
             }
         }
+
+        fusedLocationProviderClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+
     }
 
     private fun hasLocationPermission() =
@@ -259,10 +272,19 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
     private fun updateMap(lat: Double, lon: Double) {
         myMap.clear()
         val latLong = LatLng(lat, lon)
-        myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLong, 15f))
+        myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLong, 17f))
         myMap.addMarker(
             MarkerOptions()
                 .position(latLong)
         )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 }
