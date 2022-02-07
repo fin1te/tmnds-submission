@@ -184,7 +184,7 @@ class HomeFragment : Fragment(), EasyPermissions.PermissionCallbacks, OnMapReady
                     )
                     Toast.makeText(
                         context,
-                        "${location.accuracy}",
+                        "Accuracy: ${location.accuracy}m",
                         Toast.LENGTH_LONG
                     ).show()
                 }
